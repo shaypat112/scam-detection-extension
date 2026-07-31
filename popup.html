@@ -8,17 +8,38 @@
 <body>
   <div class="app">
     <header>
-      <span class="logo">🛡️</span>
-      <h1>Scam Shield</h1>
+      <div class="header-text">
+        <div class="eyebrow">SCAM SHIELD</div>
+        <div class="eyebrow eyebrow--dim">MESSAGE SCANNER</div>
+      </div>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">
+        <span id="themeToggleLabel">DARK</span>
+      </button>
     </header>
 
-    <p class="subtitle">Paste a suspicious email, text, or link below.</p>
+    <div class="rule"></div>
 
-    <textarea id="input" placeholder="Paste the message here..."></textarea>
+    <label class="field-label" for="input">SAMPLE INPUT</label>
+    <textarea id="input" placeholder="Paste a suspicious email, text, or message..."></textarea>
 
-    <button id="analyzeBtn">Analyze</button>
+    <button id="analyzeBtn" class="scan-button">Scan message</button>
 
-    <div id="result" class="result hidden"></div>
+    <div id="result" class="result hidden">
+      <div class="result-row">
+        <span class="field-label">RISK READING</span>
+        <span id="scoreText" class="score-text">— / 100</span>
+      </div>
+
+      <div class="gauge">
+        <div id="gaugeFill" class="gauge-fill"></div>
+        <div id="gaugeMarker" class="gauge-marker"></div>
+      </div>
+
+      <p id="summary" class="summary"></p>
+
+      <div class="field-label field-label--spaced">FLAGS DETECTED</div>
+      <ul id="flags" class="flags"></ul>
+    </div>
   </div>
 
   <script src="popup.js"></script>
