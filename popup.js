@@ -9,7 +9,7 @@ const flagsEl = document.getElementById("flags");
 const themeToggle = document.getElementById("themeToggle");
 const themeToggleLabel = document.getElementById("themeToggleLabel");
 const errorMessage = document.getElementById("errorMessage");
-const API_URL = "http://localhost:3000/analyze";
+const API_URL = "https://scam-shield-backend-mcqp.onrender.com/analyze";
 
 /* ==========================================================
    SCAN BUTTON — registered first, and has zero dependency
