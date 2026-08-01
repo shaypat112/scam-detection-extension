@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const analyzeWithLLM = require("./lib/llmAnalyze");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,14 +39,33 @@ function fakeAnalyze(text) {
   };
 }
 
-app.post("/analyze", (req, res) => {
+app.post("/analyze", async (req, res) => {
   const { text } = req.body;
 
   if (typeof text !== "string" || !text.trim()) {
     return res.status(400).json({ error: "Text is required" });
   }
 
-  return res.json(fakeAnalyze(text));
+  let timeoutId;
+
+  try {
+    const analysis = await Promise.race([
+      analyzeWithLLM(text),
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error("Groq analysis timed out after 10 seconds")),
+          10_000,
+        );
+      }),
+    ]);
+
+    return res.json(analysis);
+  } catch (error) {
+    console.error("LLM analysis failed; using heuristic fallback:", error);
+    return res.json(fakeAnalyze(text));
+  } finally {
+    clearTimeout(timeoutId);
+  }
 });
 
 app.listen(PORT, () => {
