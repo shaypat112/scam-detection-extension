@@ -1,12 +1,30 @@
 require("dotenv").config();
 
 const express = require("express");
+const { rateLimit } = require("express-rate-limit");
 const analyzeWithLLM = require("./lib/llmAnalyze");
 const checkUrls = require("./lib/checkUrls");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const URL_RISK_BUMP = 30;
+const analyzeLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later" },
+});
+
+function groqConfigurationStatus() {
+  const apiKey = process.env.GROQ_API_KEY || "";
+
+  if (!apiKey) {
+    return "missing";
+  }
+
+  return apiKey.startsWith("gsk_") ? "configured" : "unexpected key format";
+}
 
 app.use(express.json());
 
@@ -55,7 +73,12 @@ async function analyzeWithFallback(text) {
       }),
     ]);
   } catch (error) {
-    console.error("LLM analysis failed; using heuristic fallback:", error);
+    console.error("LLM analysis failed; using heuristic fallback", {
+      message: error.message,
+      status: error.status,
+      code: error.error?.error?.code,
+      groqApiKey: groqConfigurationStatus(),
+    });
     return fakeAnalyze(text);
   } finally {
     clearTimeout(timeoutId);
@@ -66,11 +89,17 @@ function riskLevelForScore(riskScore) {
   return riskScore >= 70 ? "high" : riskScore >= 40 ? "medium" : "low";
 }
 
-app.post("/analyze", async (req, res) => {
-  const { text } = req.body;
+app.post("/analyze", analyzeLimiter, async (req, res) => {
+  const text = typeof req.body.text === "string" ? req.body.text.trim() : "";
 
-  if (typeof text !== "string" || !text.trim()) {
+  if (!text) {
     return res.status(400).json({ error: "Text is required" });
+  }
+
+  if (text.length > 5000) {
+    return res
+      .status(400)
+      .json({ error: "Message too long, please shorten it" });
   }
 
   const [analysis, urlReputation] = await Promise.all([
@@ -101,4 +130,5 @@ app.post("/analyze", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Scam Shield API listening on port ${PORT}`);
+  console.log(`Groq API key status: ${groqConfigurationStatus()}`);
 });

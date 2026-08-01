@@ -171,6 +171,13 @@ textarea:focus {
   cursor: not-allowed;
 }
 
+.error-message {
+  margin: 12px 0 0;
+  color: var(--risk-high);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
 /* ---- Result panel ---- */
 .result {
   margin-top: 16px;

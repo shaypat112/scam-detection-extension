@@ -20,9 +20,11 @@
     <div class="rule"></div>
 
     <label class="field-label" for="input">SAMPLE INPUT</label>
-    <textarea id="input" placeholder="Paste a suspicious email, text, or message..."></textarea>
+    <textarea id="input" maxlength="5000" placeholder="Paste a suspicious email, text, or message..."></textarea>
 
     <button id="analyzeBtn" class="scan-button">Scan message</button>
+
+    <p id="errorMessage" class="error-message hidden" role="alert"></p>
 
     <div id="result" class="result hidden">
       <div class="result-row">

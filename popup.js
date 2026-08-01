@@ -8,6 +8,8 @@ const summaryEl = document.getElementById("summary");
 const flagsEl = document.getElementById("flags");
 const themeToggle = document.getElementById("themeToggle");
 const themeToggleLabel = document.getElementById("themeToggleLabel");
+const errorMessage = document.getElementById("errorMessage");
+const API_URL = "http://localhost:3000/analyze";
 
 /* ==========================================================
    SCAN BUTTON — registered first, and has zero dependency
@@ -27,27 +29,50 @@ analyzeBtn.addEventListener("click", async () => {
   analyzeBtn.disabled = true;
   analyzeBtn.textContent = "Scanning...";
   resultDiv.classList.add("hidden");
+  errorMessage.classList.add("hidden");
 
-  // STAGE 1 PLACEHOLDER: fake response, no backend call yet.
-  // Stage 3 will replace this with a real fetch() to our Render backend.
-  await fakeDelay(800);
-  const fakeResponse = {
-    riskLevel: "high", // "high" | "medium" | "low"
-    riskScore: 87,
-    summary:
-      "This message uses urgency language and impersonates a bank. (Placeholder data — real analysis comes in a later stage.)",
-    flags: [
-      "Urgent or threatening language",
-      "Suspicious sender domain",
-      "Requests personal information",
-    ],
-  };
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const data = await response.json();
 
-  renderAnalysis(fakeResponse);
+    if (!response.ok) {
+      throw new Error(data.error || "The message could not be analyzed.");
+    }
 
-  analyzeBtn.disabled = false;
-  analyzeBtn.textContent = "Scan message";
+    if (!isValidAnalysis(data)) {
+      throw new Error("The backend returned an invalid analysis.");
+    }
+
+    renderAnalysis(data);
+  } catch (error) {
+    console.error("Scam Shield analysis failed:", error);
+    errorMessage.textContent =
+      error instanceof TypeError
+        ? "Could not reach Scam Shield. Make sure the backend is running."
+        : error.message;
+    errorMessage.classList.remove("hidden");
+  } finally {
+    analyzeBtn.disabled = false;
+    analyzeBtn.textContent = "Scan message";
+  }
 });
+
+function isValidAnalysis(data) {
+  return (
+    data &&
+    ["high", "medium", "low"].includes(data.riskLevel) &&
+    typeof data.riskScore === "number" &&
+    data.riskScore >= 0 &&
+    data.riskScore <= 100 &&
+    typeof data.summary === "string" &&
+    Array.isArray(data.flags) &&
+    data.flags.every((flag) => typeof flag === "string")
+  );
+}
 
 function renderAnalysis(data) {
   resultDiv.className = `result risk-${data.riskLevel}`;
@@ -60,13 +85,15 @@ function renderAnalysis(data) {
 
   summaryEl.textContent = data.summary;
 
-  flagsEl.innerHTML = data.flags.map((f) => `<li>${f}</li>`).join("");
+  flagsEl.replaceChildren(
+    ...data.flags.map((flag) => {
+      const item = document.createElement("li");
+      item.textContent = flag;
+      return item;
+    }),
+  );
 
   resultDiv.classList.remove("hidden");
-}
-
-function fakeDelay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /* ==========================================================
