@@ -2,9 +2,11 @@ require("dotenv").config();
 
 const express = require("express");
 const analyzeWithLLM = require("./lib/llmAnalyze");
+const checkUrls = require("./lib/checkUrls");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const URL_RISK_BUMP = 30;
 
 app.use(express.json());
 
@@ -39,17 +41,11 @@ function fakeAnalyze(text) {
   };
 }
 
-app.post("/analyze", async (req, res) => {
-  const { text } = req.body;
-
-  if (typeof text !== "string" || !text.trim()) {
-    return res.status(400).json({ error: "Text is required" });
-  }
-
+async function analyzeWithFallback(text) {
   let timeoutId;
 
   try {
-    const analysis = await Promise.race([
+    return await Promise.race([
       analyzeWithLLM(text),
       new Promise((_, reject) => {
         timeoutId = setTimeout(
@@ -58,14 +54,49 @@ app.post("/analyze", async (req, res) => {
         );
       }),
     ]);
-
-    return res.json(analysis);
   } catch (error) {
     console.error("LLM analysis failed; using heuristic fallback:", error);
-    return res.json(fakeAnalyze(text));
+    return fakeAnalyze(text);
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+function riskLevelForScore(riskScore) {
+  return riskScore >= 70 ? "high" : riskScore >= 40 ? "medium" : "low";
+}
+
+app.post("/analyze", async (req, res) => {
+  const { text } = req.body;
+
+  if (typeof text !== "string" || !text.trim()) {
+    return res.status(400).json({ error: "Text is required" });
+  }
+
+  const [analysis, urlReputation] = await Promise.all([
+    analyzeWithFallback(text),
+    checkUrls(text).catch((error) => {
+      console.error("URL reputation check failed; continuing without it:", error);
+      return { suspiciousDomains: [], notes: [] };
+    }),
+  ]);
+
+  if (urlReputation.suspiciousDomains.length === 0) {
+    return res.json(analysis);
+  }
+
+  const riskScore = Math.min(
+    98,
+    analysis.riskScore +
+      urlReputation.suspiciousDomains.length * URL_RISK_BUMP,
+  );
+
+  return res.json({
+    ...analysis,
+    riskLevel: riskLevelForScore(riskScore),
+    riskScore,
+    flags: [...analysis.flags, ...urlReputation.notes],
+  });
 });
 
 app.listen(PORT, () => {
