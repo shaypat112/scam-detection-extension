@@ -11,7 +11,18 @@ const themeToggleLabel = document.getElementById("themeToggleLabel");
 const errorMessage = document.getElementById("errorMessage");
 const evidenceSection = document.getElementById("evidenceSection");
 const evidenceList = document.getElementById("evidenceList");
+const confidenceText = document.getElementById("confidenceText");
+const simpleToggle = document.getElementById("simpleToggle");
+const exportBtn = document.getElementById("exportBtn");
+const shareBtn = document.getElementById("shareBtn");
+const historyPanel = document.getElementById("historyPanel");
+const historyCount = document.getElementById("historyCount");
+const historyList = document.getElementById("historyList");
 const API_URL = "https://scam-shield-backend-mcqp.onrender.com/analyze";
+let currentAnalysis = null;
+let currentText = "";
+let simpleMode =
+  false;
 
 const EVIDENCE_PATTERNS = [
   {
@@ -73,6 +84,7 @@ analyzeBtn.addEventListener("click", async () => {
     }
 
     renderAnalysis(data, text);
+    saveScan(text, data);
   } catch (error) {
     console.error("Scam Shield analysis failed:", error);
     errorMessage.textContent =
@@ -100,6 +112,9 @@ function isValidAnalysis(data) {
 }
 
 function renderAnalysis(data, analyzedText) {
+  currentAnalysis = data;
+  currentText = analyzedText;
+  simpleMode = false;
   resultDiv.className = `result risk-${data.riskLevel}`;
 
   scoreText.textContent = `${data.riskScore} / 100`;
@@ -108,7 +123,9 @@ function renderAnalysis(data, analyzedText) {
   gaugeFill.style.width = `${data.riskScore}%`;
   gaugeMarker.style.left = `${data.riskScore}%`;
 
+  confidenceText.textContent = data.confidence || "uncertain";
   summaryEl.textContent = data.summary;
+  simpleToggle.textContent = "Explain like I'm 12";
 
   flagsEl.replaceChildren(
     ...data.flags.map((flag) => {
@@ -121,6 +138,111 @@ function renderAnalysis(data, analyzedText) {
   renderEvidence(analyzedText);
 
   resultDiv.classList.remove("hidden");
+}
+
+simpleToggle.addEventListener("click", () => {
+  if (!currentAnalysis) return;
+
+  simpleMode = !simpleMode;
+  summaryEl.textContent = simpleMode
+    ? currentAnalysis.simpleSummary || currentAnalysis.summary
+    : currentAnalysis.summary;
+  simpleToggle.textContent = simpleMode
+    ? "Show standard explanation"
+    : "Explain like I'm 12";
+});
+
+function reportText() {
+  if (!currentAnalysis) return "";
+
+  return [
+    `Scam Shield: ${currentAnalysis.riskLevel.toUpperCase()} RISK (${currentAnalysis.riskScore}/100)`,
+    `Confidence: ${currentAnalysis.confidence || "uncertain"}`,
+    currentAnalysis.summary,
+    "Flags:",
+    ...currentAnalysis.flags.map((flag) => `- ${flag}`),
+  ].join("\n");
+}
+
+exportBtn.addEventListener("click", () => {
+  if (!currentAnalysis) return;
+
+  const blob = new Blob(
+    [JSON.stringify({ message: currentText, analysis: currentAnalysis }, null, 2)],
+    { type: "application/json" },
+  );
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `scam-shield-${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+shareBtn.addEventListener("click", async () => {
+  const text = reportText();
+  if (!text) return;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: "Scam Shield analysis", text });
+      return;
+    }
+  } catch (error) {
+    if (error.name === "AbortError") return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    shareBtn.textContent = "Copied";
+    setTimeout(() => (shareBtn.textContent = "Share"), 1200);
+  } catch (error) {
+    console.error("Scam Shield share failed:", error);
+  }
+});
+
+function saveScan(text, analysis) {
+  if (!hasChromeStorage) return;
+
+  chrome.storage.local.get(["scanHistory"], ({ scanHistory = [] }) => {
+    const nextHistory = [
+      { id: Date.now(), scannedAt: new Date().toISOString(), text, analysis },
+      ...scanHistory,
+    ].slice(0, 5);
+    chrome.storage.local.set({ scanHistory: nextHistory }, () =>
+      renderHistory(nextHistory),
+    );
+  });
+}
+
+function renderHistory(history) {
+  historyCount.textContent = history.length;
+  historyPanel.classList.toggle("hidden", history.length === 0);
+  historyList.replaceChildren(
+    ...history.map((scan) => {
+      const button = document.createElement("button");
+      const heading = document.createElement("strong");
+      const preview = document.createElement("span");
+      button.type = "button";
+      button.className = "history-item";
+      heading.textContent = `${scan.analysis.riskLevel} · ${scan.analysis.riskScore}/100`;
+      preview.textContent = scan.text;
+      button.append(heading, preview);
+      button.addEventListener("click", () => {
+        input.value = scan.text;
+        renderAnalysis(scan.analysis, scan.text);
+        historyPanel.open = false;
+      });
+      return button;
+    }),
+  );
+}
+
+function initHistory() {
+  if (!hasChromeStorage) return;
+  chrome.storage.local.get(["scanHistory"], ({ scanHistory = [] }) =>
+    renderHistory(scanHistory.slice(0, 5)),
+  );
 }
 
 function findEvidence(text) {
@@ -234,3 +356,4 @@ function initTheme() {
 }
 
 initTheme();
+initHistory();
