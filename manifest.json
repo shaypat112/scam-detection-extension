@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Scam Shield - Phishing & Scam Explainer",
-  "version": "1.1.0",
+  "name": "Serxi - Phishing & Scam Explainer",
+  "version": "1.2.0",
   "description": "Paste in a suspicious email, text, or link and get a plain-English breakdown of why it's risky.",
   "action": {
     "default_popup": "popup.html",

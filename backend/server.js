@@ -31,7 +31,7 @@ function groqConfigurationStatus() {
 app.use(express.json());
 
 app.get("/", (_req, res) => {
-  res.json({ status: "ok", message: "Scam Shield API is running" });
+  res.json({ status: "ok", message: "Serxi API is running" });
 });
 
 function fakeAnalyze(text) {
@@ -137,6 +137,6 @@ app.post("/analyze", analyzeLimiter, async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Scam Shield API listening on port ${PORT}`);
+  console.log(`Serxi API listening on port ${PORT}`);
   console.log(`Groq API key status: ${groqConfigurationStatus()}`);
 });

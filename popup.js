@@ -86,10 +86,10 @@ analyzeBtn.addEventListener("click", async () => {
     renderAnalysis(data, text);
     saveScan(text, data);
   } catch (error) {
-    console.error("Scam Shield analysis failed:", error);
+    console.error("Serxi analysis failed:", error);
     errorMessage.textContent =
       error instanceof TypeError
-        ? "Could not reach Scam Shield. Make sure the backend is running."
+        ? "Could not reach Serxi. Please try again in a moment."
         : error.message;
     errorMessage.classList.remove("hidden");
   } finally {
@@ -156,7 +156,7 @@ function reportText() {
   if (!currentAnalysis) return "";
 
   return [
-    `Scam Shield: ${currentAnalysis.riskLevel.toUpperCase()} RISK (${currentAnalysis.riskScore}/100)`,
+    `Serxi: ${currentAnalysis.riskLevel.toUpperCase()} RISK (${currentAnalysis.riskScore}/100)`,
     `Confidence: ${currentAnalysis.confidence || "uncertain"}`,
     currentAnalysis.summary,
     "Flags:",
@@ -174,7 +174,7 @@ exportBtn.addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `scam-shield-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `serxi-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
 });
@@ -185,7 +185,7 @@ shareBtn.addEventListener("click", async () => {
 
   try {
     if (navigator.share) {
-      await navigator.share({ title: "Scam Shield analysis", text });
+      await navigator.share({ title: "Serxi analysis", text });
       return;
     }
   } catch (error) {
@@ -197,7 +197,7 @@ shareBtn.addEventListener("click", async () => {
     shareBtn.textContent = "Copied";
     setTimeout(() => (shareBtn.textContent = "Share"), 1200);
   } catch (error) {
-    console.error("Scam Shield share failed:", error);
+    console.error("Serxi share failed:", error);
   }
 });
 
@@ -316,7 +316,7 @@ themeToggle.addEventListener("click", () => {
     try {
       chrome.storage.local.set({ theme: next });
     } catch (err) {
-      console.warn("Scam Shield: couldn't save theme preference.", err);
+      console.warn("Serxi: couldn't save theme preference.", err);
     }
   }
 });
@@ -350,7 +350,7 @@ function initTheme() {
       applyTheme(result.theme || fallbackTheme);
     });
   } catch (err) {
-    console.warn("Scam Shield: couldn't read theme preference.", err);
+    console.warn("Serxi: couldn't read theme preference.", err);
     applyTheme(fallbackTheme);
   }
 }

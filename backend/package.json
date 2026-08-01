@@ -1,8 +1,8 @@
 {
-  "name": "scam-shield-backend",
+  "name": "serxi-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Express API for Scam Shield message analysis",
+  "description": "Express API for Serxi message analysis",
   "main": "server.js",
   "packageManager": "pnpm@10.27.0",
   "engines": {
