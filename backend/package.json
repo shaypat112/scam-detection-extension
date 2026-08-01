@@ -4,6 +4,10 @@
   "private": true,
   "description": "Express API for Scam Shield message analysis",
   "main": "server.js",
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server.js"
   },

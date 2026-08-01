@@ -16,6 +16,8 @@ const analyzeLimiter = rateLimit({
   message: { error: "Too many requests, please try again later" },
 });
 
+app.set("trust proxy", 1);
+
 function groqConfigurationStatus() {
   const apiKey = process.env.GROQ_API_KEY || "";
 
