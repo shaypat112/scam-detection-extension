@@ -236,6 +236,35 @@ textarea:focus {
   margin: 0;
 }
 
+.confidence-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.confidence-row .field-label { margin: 0; }
+
+.confidence-text {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.text-action {
+  margin: 7px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--steel);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .flags {
   list-style: none;
   margin: 6px 0 0;
@@ -305,6 +334,58 @@ textarea:focus {
   font-size: 10.5px;
   line-height: 1.35;
 }
+
+.result-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.secondary-button {
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondary-button:hover { border-color: var(--steel); }
+
+.history-panel {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.history-panel summary {
+  color: var(--ink-dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.history-list { display: grid; gap: 6px; margin-top: 8px; }
+
+.history-item {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.history-item strong { font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
+.history-item span { display: block; margin-top: 3px; color: var(--ink-dim); font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---- Risk color states, applied via JS ---- */
 .risk-high .score-text { color: var(--risk-high); }

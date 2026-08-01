@@ -37,7 +37,13 @@
         <div id="gaugeMarker" class="gauge-marker"></div>
       </div>
 
+      <div class="confidence-row">
+        <span class="field-label">CONFIDENCE</span>
+        <span id="confidenceText" class="confidence-text">—</span>
+      </div>
+
       <p id="summary" class="summary"></p>
+      <button id="simpleToggle" class="text-action" type="button">Explain like I'm 12</button>
 
       <div class="field-label field-label--spaced">FLAGS DETECTED</div>
       <ul id="flags" class="flags"></ul>
@@ -47,7 +53,17 @@
         <p class="evidence-hint">Select an item to locate it in the message.</p>
         <div id="evidenceList" class="evidence-list"></div>
       </div>
+
+      <div class="result-actions">
+        <button id="exportBtn" class="secondary-button" type="button">Export JSON</button>
+        <button id="shareBtn" class="secondary-button" type="button">Share</button>
+      </div>
     </div>
+
+    <details id="historyPanel" class="history-panel hidden">
+      <summary>RECENT SCANS <span id="historyCount">0</span></summary>
+      <div id="historyList" class="history-list"></div>
+    </details>
   </div>
 
   <script src="popup.js"></script>

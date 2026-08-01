@@ -54,6 +54,12 @@ function fakeAnalyze(text) {
       matches.length > 0
         ? "This message contains patterns commonly used in scams. Treat it cautiously and verify the sender independently."
         : "This message does not contain obvious scam patterns, but you should still verify unexpected requests.",
+    simpleSummary:
+      matches.length > 0
+        ? "This message has signs of a scam. Do not reply or send anything until you check with someone you trust."
+        : "This message does not show obvious scam signs. Be careful if it asks you to do something unexpected.",
+    confidence:
+      matches.length >= 2 ? "clear-cut" : matches.length === 1 ? "likely" : "uncertain",
     flags:
       matches.length > 0
         ? matches.map(({ flag }) => flag)

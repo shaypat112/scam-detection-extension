@@ -16,6 +16,6 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "clipboardWrite"],
   "host_permissions": ["https://scam-shield-backend-mcqp.onrender.com/*"]
 }
