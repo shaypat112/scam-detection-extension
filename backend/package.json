@@ -8,6 +8,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@tavily/core": "^0.7.6",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "groq-sdk": "^1.5.0"
