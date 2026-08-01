@@ -259,6 +259,53 @@ textarea:focus {
   color: var(--steel);
 }
 
+.evidence-hint {
+  margin: -1px 0 7px;
+  color: var(--ink-dim);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.evidence-list {
+  display: grid;
+  gap: 6px;
+}
+
+.evidence-item {
+  width: 100%;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--steel);
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.evidence-item:hover,
+.evidence-item:focus-visible {
+  border-color: var(--steel);
+  outline: none;
+}
+
+.evidence-quote {
+  display: block;
+  overflow-wrap: anywhere;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.evidence-reason {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink-dim);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
 /* ---- Risk color states, applied via JS ---- */
 .risk-high .score-text { color: var(--risk-high); }
 .risk-medium .score-text { color: var(--risk-medium); }

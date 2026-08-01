@@ -9,7 +9,32 @@ const flagsEl = document.getElementById("flags");
 const themeToggle = document.getElementById("themeToggle");
 const themeToggleLabel = document.getElementById("themeToggleLabel");
 const errorMessage = document.getElementById("errorMessage");
+const evidenceSection = document.getElementById("evidenceSection");
+const evidenceList = document.getElementById("evidenceList");
 const API_URL = "https://scam-shield-backend-mcqp.onrender.com/analyze";
+
+const EVIDENCE_PATTERNS = [
+  {
+    pattern: /\b(?:urgent|immediately|act now|final warning|suspended)\b/gi,
+    reason: "Creates urgency or pressure to act quickly",
+  },
+  {
+    pattern: /\b(?:gift cards?|wire transfer|cryptocurrency|bitcoin)\b/gi,
+    reason: "Requests a payment method commonly used in scams",
+  },
+  {
+    pattern: /\b(?:password|verification code|social security|bank account)\b/gi,
+    reason: "Requests sensitive account or identity information",
+  },
+  {
+    pattern: /\b(?:verify your account|click here|click the link)\b/gi,
+    reason: "Pressures you to follow instructions or verify an account",
+  },
+  {
+    pattern: /\bhttps?:\/\/[^\s<>"']+/gi,
+    reason: "Contains a link worth checking before opening",
+  },
+];
 
 /* ==========================================================
    SCAN BUTTON — registered first, and has zero dependency
@@ -47,7 +72,7 @@ analyzeBtn.addEventListener("click", async () => {
       throw new Error("The backend returned an invalid analysis.");
     }
 
-    renderAnalysis(data);
+    renderAnalysis(data, text);
   } catch (error) {
     console.error("Scam Shield analysis failed:", error);
     errorMessage.textContent =
@@ -74,7 +99,7 @@ function isValidAnalysis(data) {
   );
 }
 
-function renderAnalysis(data) {
+function renderAnalysis(data, analyzedText) {
   resultDiv.className = `result risk-${data.riskLevel}`;
 
   scoreText.textContent = `${data.riskScore} / 100`;
@@ -93,7 +118,62 @@ function renderAnalysis(data) {
     }),
   );
 
+  renderEvidence(analyzedText);
+
   resultDiv.classList.remove("hidden");
+}
+
+function findEvidence(text) {
+  const evidence = [];
+
+  for (const { pattern, reason } of EVIDENCE_PATTERNS) {
+    pattern.lastIndex = 0;
+
+    for (const match of text.matchAll(pattern)) {
+      const quote = match[0].replace(/[),.;!?]+$/g, "");
+      const start = match.index;
+
+      if (!quote || evidence.some((item) => item.start === start)) {
+        continue;
+      }
+
+      evidence.push({ quote, reason, start, end: start + quote.length });
+
+      if (evidence.length === 5) {
+        return evidence.sort((a, b) => a.start - b.start);
+      }
+    }
+  }
+
+  return evidence.sort((a, b) => a.start - b.start);
+}
+
+function renderEvidence(text) {
+  const evidence = findEvidence(text);
+
+  evidenceList.replaceChildren(
+    ...evidence.map(({ quote, reason, start, end }) => {
+      const button = document.createElement("button");
+      const quoteEl = document.createElement("span");
+      const reasonEl = document.createElement("span");
+
+      button.type = "button";
+      button.className = "evidence-item";
+      button.setAttribute("aria-label", `Locate ${quote} in message`);
+      quoteEl.className = "evidence-quote";
+      quoteEl.textContent = `“${quote}”`;
+      reasonEl.className = "evidence-reason";
+      reasonEl.textContent = reason;
+      button.append(quoteEl, reasonEl);
+      button.addEventListener("click", () => {
+        input.focus();
+        input.setSelectionRange(start, end);
+      });
+
+      return button;
+    }),
+  );
+  evidenceSection.classList.toggle("hidden", evidence.length === 0);
 }
 
 /* ==========================================================
